@@ -1,0 +1,66 @@
+JOBS: 8 # データローダーがデータ読み込みに使うサブプロセス（ワーカー）の数。一般的に、CPUコア数やメモリ容量を考慮して最適な値を選ぶ
+TEST_ONLY: False
+LOG_INTERVAL: 10 # 訓練および検証の進行状況をログに出力する頻度を、バッチ単位で指定
+TRAIN_BATCH_SIZE: 1 # 訓練データセットから一度に読み込むサンプルの数
+VAL_BATCH_SIZE: 1 # 検証データセットから一度に読み込むサンプルの数
+START_EPOCH: 0
+END_EPOCH: 400
+VAL_INTERVAL: 1 # 検証ループを実行する頻度を、エポック単位で指定
+MODEL_SANING_INTERVAL: 20 # モデルのチェックポイントを保存する頻度を、エポック単位で指定
+MIX_PRECISION: true # 混合精度学習（Automatic Mixed Precision, AMP）を有効にするかどうかを決定
+SAVE_DIR: "/home/ubuntu/local/emars3/log" #モデル保存場所パス
+
+RESUME: # 学習を再開するための設定群
+  PATH:  # 学習を再開するためのチェックポイントファイル（.pth.tar）のパスを指定。パスが空の場合、新規に学習が開始
+  TYPE:
+  SET_EPOCH: true # trueの場合、チェックポイントファイルに保存されているエポック数、オプティマイザ、およびスケジューラの状態を復元
+
+LAUNCHER: "ParallelLaunch"
+SEED: 9527
+IS_CUDA: true
+DISTRIBUTED: true # 分散学習を有効にするかどうかを決定
+
+OPTIMIZER:
+  NAME: "Adam"
+  LR: 0.0001
+  LR_SCHEDULER: cosine
+  end_epoch: 400
+
+DATASET:
+  NAME: evunroll-simulated
+  root: "/home/ubuntu/slocal1/EvUnrall"
+  events_moment: 52
+  crop_size:
+    - 360
+    - 360
+
+MODEL:
+  flow_params:
+    hidden_features: [64, 64, 256]
+    hidden_layers: 2
+    out_features: 2
+
+  interp_params:
+    hidden_features: [64, 64, 256, 256]
+    hidden_layers: 3
+    out_features: 3
+
+
+LOSS:
+  - NAME: global-shutter-sharp-reconstructed-loss
+    WEIGHT: 1
+  - NAME: rolling-shutter-sharp-reconstructed-loss
+    WEIGHT: 0.05
+
+
+METRICS:
+  - NAME: gs-sharp-psnr
+    input_is_linear: false
+  - NAME: gs-sharp-ssim
+    input_is_linear: false
+
+VISUALIZATION:
+  folder: ./visualize
+  tag: 0413
+  intermediate_visualization: false
+  TEST_VIS: false

@@ -1,0 +1,66 @@
+JOBS: 8
+TEST_ONLY: True # テストのみを実行
+LOG_INTERVAL: 10
+VAL_BATCH_SIZE: 1 # 推論時はバッチサイズを小さく設定
+START_EPOCH: 0
+END_EPOCH: 1
+VAL_INTERVAL: 1
+MIX_PRECISION: true
+SAVE_DIR: "/home/ubuntu/local/emars3_4/log_real_test"
+
+RESUME:
+  PATH: "/home/ubuntu/local/emars3_4/log/model_best.pth.tar" # 学習済みモデルのパス
+  TYPE: "best"
+  SET_EPOCH: false
+  RESUME_STRICT: True
+
+LAUNCHER: "ParallelLaunch"
+SEED: 9527
+IS_CUDA: true
+DISTRIBUTED: true
+
+OPTIMIZER:
+  NAME: "Adam"
+  LR: 0.0001
+  LR_SCHEDULER: cosine
+  end_epoch: 400
+
+DATASET:
+  NAME: real_test
+  root: "/home/ubuntu/local/04_003500_023559"
+  events_moment: 52
+  fps: 20.79
+  idx: 36
+  crop_size:
+    - 720
+    - 1280
+
+MODEL:
+  flow_params:
+    hidden_features: [64, 64, 256]
+    hidden_layers: 2
+    out_features: 2
+
+  interp_params:
+    hidden_features: [64, 64, 256, 256]
+    hidden_layers: 3
+    out_features: 3
+
+
+LOSS:
+  - NAME: global-shutter-sharp-reconstructed-loss
+    WEIGHT: 1
+  - NAME: rolling-shutter-sharp-reconstructed-loss
+    WEIGHT: 0.05
+
+METRICS:
+  - NAME: gs-sharp-psnr
+    input_is_linear: false
+  - NAME: gs-sharp-ssim
+    input_is_linear: false
+
+VISUALIZATION:
+  folder: /home/ubuntu/local/emars3_4/visulization2
+  tag: 0413_test
+  intermediate_visualization: false # 推論中の画像も表示する場合
+  TEST_VIS: true # 可視化を行う場合
